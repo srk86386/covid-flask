@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/menubar.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+</style>
+</head>
+<body>
+  <!--<div style="display: block;background: #4E9CAF;color: white;font-weight: bold;" class="container">
+    <span style="text-align:left;width:100px;"> <a href='/tweet-harvester/None'>
+      Tweeter updates</a></span>
+    <span style="text-align:center;width:100px"> <h3>Patients data</h3> </span>
+    <span style="text-align:right;width:100px"> <a href='/tweet-harvester/wc'>
+      word cloud</a></span>
+  </div>-->
+  <div class="topnav">
+      <a class="active" href="#">Home</a>
+      <a href="/tweet-harvester/None">Tweeter updates</a>
+      <a href="/tweet-harvester/wc">WordCloud</a>
+      <!--<a href="#about">About</a>-->
+  </div>
+<!--
+  <div class="btn-group btn-group-justified" role="group" aria-label="...">
+  <div class="btn-group" role="group">
+    <button type="button" class="glyphicon btn-lg glyphicon-film">  index  </button>
+  </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="glyphicon btn-lg glyphicon-list-alt">  tweets   </button>
+  </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="glyphicon btn-lg glyphicon-picture">   images  </button>
+  </div>
+</div>-->
+<br><br><br>
+<div style="overflow-x: auto; overflow-x: auto;">
+<table>
+  <tr>
+    <!--let us define the headers
+    <th>Company</th>
+    <th>Contact</th>
+    <th>Country</th>-->
+    {% for k in data[0].keys() %}
+      <th>{{ k }}</th>
+    {% endfor %}
+  </tr>
+
+
+    <!-- adding table data
+    <td>Alfreds Futterkiste</td>
+    <td>Maria Anders</td>
+    <td>Germany</td>
+    -->
+    {% for doc in data %}
+    <tr>
+      {% for k,v in doc.items() %}
+        {% if v.find(".")>-1: %}
+          <td><a href="{{ v }}"
+            target="popup"
+            onclick="window.open({{ v }}, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');return false;"> {{ v }} </a></td>
+
+        {% endif %}
+        <td>{{ v }} </td>
+
+      {% endfor %}
+      </tr>
+    {% endfor %}
+</table>
+</div>
+
+<script>
+    function open_url(url) {
+      var strWindowFeatures = "location=yes,height=570,width=520,scrollbars=yes,status=yes";
+      var URL = "https://www.linkedin.com/cws/share?mini=true&amp;url=" + location.href;
+      var win = window.open(URL, "_blank", strWindowFeatures);
+    }
+</script>
+</body>
+</html>
