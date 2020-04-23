@@ -50,8 +50,7 @@ def generate_image(data):
     image = Image.new('RGB', (900, 700), (173, 173, 173))
     drawer = ImageDraw.Draw(image)
     #font_zise = 18
-    #font = ImageFont.truetype('/Windows/Fonts/Arial.ttf', font_size)
-    font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeMono.ttf", font_size)
+    font = ImageFont.truetype('/Windows/Fonts/Arial.ttf', font_size)
 
     size = drawer.textsize(data, font=font)
     #offset = font.getoffset(STRING)

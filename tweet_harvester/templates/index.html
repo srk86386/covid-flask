@@ -51,39 +51,43 @@ tr:nth-child(even) {
   </div>
 </div>-->
 <br><br><br>
-<div style="overflow-x: auto; overflow-x: auto;">
-<table>
-  <tr>
-    <!--let us define the headers
-    <th>Company</th>
-    <th>Contact</th>
-    <th>Country</th>-->
-    {% for k in data[0].keys() %}
-      <th>{{ k }}</th>
-    {% endfor %}
-  </tr>
-
-
-    <!-- adding table data
-    <td>Alfreds Futterkiste</td>
-    <td>Maria Anders</td>
-    <td>Germany</td>
-    -->
-    {% for doc in data %}
-    <tr>
-      {% for k,v in doc.items() %}
-        {% if v.find(".")>-1: %}
-          <td><a href="{{ v }}"
-            target="popup"
-            onclick="window.open({{ v }}, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');return false;"> {{ v }} </a></td>
-
-        {% endif %}
-        <td>{{ v }} </td>
-
-      {% endfor %}
+<div class="grid-container">
+  <div style="grid-area: header;"></div>
+  <div class="container" style="overflow:scroll;height:650px;grid-area: main;">
+    <table style='overflow-y:scroll;border-collapse: collapse;border-radius: 2;border-left: 10px;border-spacing: 0;white-space: nowrap;font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;'>
+      <tr>
+        <!--let us define the headers
+        <th>Company</th>
+        <th>Contact</th>
+        <th>Country</th>-->
+        {% for k in data[0].keys() %}
+          <th style="background-color: #808080;color: white;padding-top: 12px;padding-bottom: 12px;">{{ k }}</th>
+        {% endfor %}
       </tr>
-    {% endfor %}
-</table>
+
+
+        <!-- adding table data
+        <td>Alfreds Futterkiste</td>
+        <td>Maria Anders</td>
+        <td>Germany</td>
+        -->
+        {% for doc in data %}
+        <tr>
+          {% for k,v in doc.items() %}
+            {% if v.find(".")>-1: %}
+              <td><a href="{{ v }}"
+                target="popup"
+                onclick="window.open({{ v }}, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');return false;"> {{ v }} </a></td>
+
+            {% endif %}
+            <td>{{ v }} </td>
+
+          {% endfor %}
+          </tr>
+        {% endfor %}
+    </table>
+  </div>
+  <div class="item5"></div>
 </div>
 
 <script>

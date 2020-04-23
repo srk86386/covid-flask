@@ -1,7 +1,11 @@
 from pymongo import MongoClient
 import pymongo
+import urllib
+username = urllib.parse.quote_plus('rahul')
+password = urllib.parse.quote_plus('qwert@12')
+client = MongoClient(f"mongodb+srv://{username}:{password}@covid0-oir2o.mongodb.net/test?retryWrites=true&w=majority")
 
-client = MongoClient()
+#client = MongoClient()
 db = client.covid_db
 
 import urllib.request, json
@@ -18,16 +22,16 @@ collections = ['rawPatientData','raw_data','cases_time_series','travel_history',
 #let us remove all previous docs
 def remove_docs():
     for i in range(len(collections)):
-        #print(db[collections[i]].count())
-        db[collections[i]].remove()
-        #print(db[collections[i]].count())
-#remove_docs()
-#print(collections)
+        #print(db[collections[i]].estimated_document_count())
+        db[collections[i]].delete_many({})
+        #print(db[collections[i]].estimated_document_count())
+remove_docs()
+print(collections)
 
 def reverse_collection():
     data = list(db[collection].find())
     data.reverse()
-    db[collection].remove()
+    db[collection].delete_many({})
     db[collection].insert_many(data)
 
 
@@ -48,6 +52,35 @@ def change_data_type(collection,field,dtype, sort=False):
 
     #if sort:
     #    data = db[collection].find()
+
+for i in range(0,4):
+    with urllib.request.urlopen(urls[i]) as url:
+        data = json.loads(url.read().decode())
+        col_name = collections[i]
+        if col_name == 'rawPatientData':
+            all_docs = list(data['data'][col_name])
+            all_docs.reverse()
+            current_count = db[col_name].estimated_document_count()
+            db[col_name].insert_many(all_docs)
+        else:
+            all_docs = list(data[col_name])
+            current_count = db[col_name].estimated_document_count()
+            all_docs.reverse()
+            db[col_name].insert_many(all_docs)
+        if col_name == 'raw_data':
+            #change_data_type(col_name, 'patientnumber', 'int')
+            pass
+        else:
+            pass
+        #print(f" in if current docs count in collection - {collections[i]} is {current_count}, new count of docs on server {len(all_docs)}")
+        pass
+        #if len(all_docs)>current_count:
+        #    print(f" in if current docs count in collection - {collections[i]} is {current_count}, new count of docs on server {len(all_docs)}")
+        #    db[collections[i]].insert_many(all_docs)
+        #else:
+        #    print(f"current docs count in collection - {collections[i]} is {current_count}, new count of docs on server {len(all_docs)}")
+        #    pass
+
 
 def some_fun(d):
     keys=[]
@@ -103,42 +136,12 @@ def some_fun(d):
     data_to_return=" ".join(json_string)
     data_to_return = data_to_return+"}}"
     return data_to_return
-def get_data():
-    remove_docs()
-    for i in range(0,4):
-        with urllib.request.urlopen(urls[i]) as url:
-            data = json.loads(url.read().decode())
-            col_name = collections[i]
-            if col_name == 'rawPatientData':
-                all_docs = list(data['data'][col_name])
-                all_docs.reverse()
-                current_count = db[col_name].count()
-                db[col_name].insert_many(all_docs)
-            else:
-                all_docs = list(data[col_name])
-                current_count = db[col_name].count()
-                all_docs.reverse()
-                db[col_name].insert_many(all_docs)
-            if col_name == 'raw_data':
-                #change_data_type(col_name, 'patientnumber', 'int')
-                pass
-            else:
-                pass
-            print(f" in if current docs count in collection - {collections[i]} is {current_count}, new count of docs on server {len(all_docs)}")
-            pass
-            #if len(all_docs)>current_count:
-            #    print(f" in if current docs count in collection - {collections[i]} is {current_count}, new count of docs on server {len(all_docs)}")
-            #    db[collections[i]].insert_many(all_docs)
-            #else:
-            #    print(f"current docs count in collection - {collections[i]} is {current_count}, new count of docs on server {len(all_docs)}")
-            #    pass
 
-    with urllib.request.urlopen(urls[-1]) as url:
-        data = json.loads(url.read().decode())
-        for k in data.keys():
-            db[collections[-1]].insert_one({f'{k}':some_fun(data[k])})
-    print(f"{collections[-1]} collection count is {db[collections[-1]].count()}")
-if __name__ == '__main__':
-    get_data()
-else:
-    pass
+
+
+with urllib.request.urlopen(urls[-1]) as url:
+    data = json.loads(url.read().decode())
+    for k in data.keys():
+        db[collections[-1]].insert_one({f'{k}':some_fun(data[k])})
+#   print(f"{collections[-1]} collection count is {db[collections[-1]].count()}")
+client = None

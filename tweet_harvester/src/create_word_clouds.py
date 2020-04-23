@@ -4,19 +4,18 @@ import numpy as npy
 from PIL import Image
 from pathlib import Path # to work with path
 import base64
+import db_utils
 
-from pymongo import MongoClient
 
-client = MongoClient()
-updates_coll = client.tweeter_db.updates
-main_col = client.tweeter_db.news_tweets
+#from pymongo import MongoClient
+#client = MongoClient()
+#updates_coll = client.tweeter_db.updates
+#main_col = client.tweeter_db.news_tweets
 
 import time;
 ts = time.time()
 
 interval_file_name = str(int(ts))+".png"
-
-
 img_dir = str(Path(__file__).parents[1])+"/static/images/"
 
 
@@ -69,7 +68,8 @@ def generic_wc():
 
 def interval():
     # file name will be stored in interval_file_name
-    data = " ".join([item['cleaned_text'] for item in updates_coll.find({},{'cleaned_text':1,'_id':0})])
+    client = db_utils.connect()
+    data = " ".join([item['cleaned_text'] for item in client.tweeter_db.updates.find({},{'cleaned_text':1,'_id':0})])
     create_word_cloud(data,"wc.png")
     """ We will be generating word cloud, after every iteration """
 
@@ -79,8 +79,10 @@ def key_word_cloud(keyword='lockdown'):
     """ We will be generating word cloud, on keyword basis """
     #get the current date in the formate toquery
     dat_for_filter = time.strftime("%Y%m%d")
-    data = " ".join([item['cleaned_text'] for item in main_col.find({'$and':[{'cleaned_text':{'$regex':keyword,'$options':'i'}},
+    client = db_utils.connect()
+    data = " ".join([item['cleaned_text'] for item in client.tweeter_db.news_tweets.find({'$and':[{'cleaned_text':{'$regex':keyword,'$options':'i'}},
                                                                     {'tmstamp':{'$regex':'^'+dat_for_filter+'.*'}}]},{'cleaned_text':1,'_id':0})])
+    client = None
     #need to drop keywords which match lockdown
     data = data.lower().replace(keyword,"")
     create_word_cloud(data, keyword+dat_for_filter+".png")
@@ -90,8 +92,7 @@ def key_word_cloud(keyword='lockdown'):
 def till_date_wc():
     """ We will be generating word cloud, for all the tweets till date"""
     pass
+
 if __name__ == "__main__":
     interval()
     key_word_cloud()
-else:
-    pass

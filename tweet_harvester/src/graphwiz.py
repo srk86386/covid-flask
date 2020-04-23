@@ -1,28 +1,26 @@
 import matplotlib.pyplot as plt
 import matplotlib
 from statistics import mean
+import db_utils
 from pathlib import Path # to work with path
 img_dir = str(Path(__file__).parents[1])+"/static/images/"
 
 import time
 
-from pymongo import MongoClient
+#from pymongo import MongoClient
+#client = MongoClient()
+#coln = client.covid_db.raw_data
 t_date = time.strftime("%d/%m/%Y")
+#coln = client.covid_db.rawPatientData
 
-def config():
-    coln = MongoClient().covid_db.raw_data
-    #coln = client.covid_db.rawPatientData
-    font = {#'family' : 'normal',
-            'weight' : 'bold',
-            'size'   : 22}
-    matplotlib.rc('font', **font)
-    return coln
+font = {#'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 22}
 
-def deconfig():
-    coln = None
+matplotlib.rc('font', **font)
 
-
-def get_all_data(coln):
+def get_all_data():
+     client = db_utils.connect()
      agg1=[{'$match':{'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Hospitalized'} ]}}, # reportedOn, status
              {'$group': {'_id': '$dateannounced','count': { '$sum': 1 }}},
             { '$project': {
@@ -34,7 +32,7 @@ def get_all_data(coln):
             }}},
              { '$sort' : { 'date' : 1} }
             ]
-     data_confirmed = list(coln.aggregate(agg1))
+     data_confirmed = list(client.covid_db.raw_data.aggregate(agg1))
 
      agg2=[{'$match':{'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Recovered'} ]}},
          {'$group': {'_id': '$dateannounced','count': { '$sum': 1 }}},
@@ -47,7 +45,7 @@ def get_all_data(coln):
         }}},
          { '$sort' : { 'date' : 1} }
         ]
-     data_recovered = list(coln.aggregate(agg2))
+     data_recovered = list(client.covid_db.raw_data.aggregate(agg2))
 
 
      agg3=[{'$match':{'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Deceased'} ]}},
@@ -61,7 +59,7 @@ def get_all_data(coln):
         }}},
          { '$sort' : { 'date' : 1} }
         ]
-     data_deceased = list(coln.aggregate(agg3))
+     data_deceased = list(client.covid_db.raw_data.aggregate(agg3))
 
      # to get hospitalized data of all the states for current date
      #agg4=[{'$match':{'$and':[{'dateannounced':t_date},  {'currentstatus':'Hospitalized'} ]}},
@@ -69,11 +67,10 @@ def get_all_data(coln):
     #     { '$sort' : { 'count' : -1} }
     #    ]
      #data_statewise = list(coln.aggregate(agg4))
-
-
+     client = None
      return [data_confirmed, data_recovered,data_deceased]
 
-def get_age_graph(coln):
+def get_age_graph():
     fig, ax = plt.subplots(figsize=(30,18))
     def convert_ages_to_int(data):
          y1=[]
@@ -92,14 +89,16 @@ def get_age_graph(coln):
                         y1.append(mean(v))
          return y1
 
-    hospitalized = list(coln.find({'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Hospitalized'} ]}, {'agebracket':1,'_id':0}))
+    client = db_utils.connect()
+    hospitalized = list(client.covid_db.raw_data.find({'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Hospitalized'} ]}, {'agebracket':1,'_id':0}))
     hosp_data = convert_ages_to_int(hospitalized)
 
-    hospitalized = list(coln.find({'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Recovered'} ]}, {'agebracket':1,'_id':0}))
+    hospitalized = list(client.covid_db.raw_data.find({'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Recovered'} ]}, {'agebracket':1,'_id':0}))
     reco_data = convert_ages_to_int(hospitalized)
 
-    hospitalized = list(coln.find({'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Deceased'} ]}, {'agebracket':1,'_id':0}))
+    hospitalized = list(client.covid_db.raw_data.find({'$and':[{'dateannounced':{'$ne':""}},  {'currentstatus':'Deceased'} ]}, {'agebracket':1,'_id':0}))
     deceas_data = convert_ages_to_int(hospitalized)
+    client = None
 
     age_bucket = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120]
     plt.hist(hosp_data,age_bucket, label='hospitalized',histtype='bar',rwidth=0.8) # calling hist function instead of plot or bar to plot histogram
@@ -252,17 +251,14 @@ def daily_all_cases_bar(all_data):
     #plt.show()
     plt.savefig(img_dir+"overall.png", facecolor='w', edgecolor='w',orientation='portrait')
 
-def controller():
-    coln = config()
-    all_data=get_all_data(coln)
+def main():
+    all_data=get_all_data()
     daily_bar_graph(all_data[0])
     daily_graph_recovered(all_data[1])
     daily_graph_deceased(all_data[2])
     daily_all_cases_bar(all_data)
-    get_age_graph(coln)
-    deconfig()
-if __name__ == "__main__":
-    controller()
+    get_age_graph()
     #input()
-else:
-    pass
+
+if __name__=='__main__':
+    main()

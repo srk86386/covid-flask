@@ -1,9 +1,10 @@
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize, sent_tokenize
-
+import time
 import PIL_example
 
+import db_utils
 #step 1.Create the word frequency table
 def _create_frequency_table(text_string) -> dict:
 
@@ -72,20 +73,21 @@ def _generate_summary(sentences, sentenceValue, threshold):
 #    text = mf.read()
 #print(len(text))
 
-from pymongo import MongoClient
-import time
-client = MongoClient()
+#from pymongo import MongoClient
+
+#client = MongoClient()
 #updates_coll = client.tweeter_db.updates
-main_col = client.tweeter_db.news_tweets
+#main_col = client.tweeter_db.news_tweets
 
-data=[]
-dat_for_filter = time.strftime("%Y%m%d")
-
-def create_summery():
-    data.append( " ".join([item['cleaned_text'] for item in main_col.find({'$and':[{'cleaned_text':{'$regex':'lockdown','$options':'i'}},
+def main():
+    client = db_utils.connect()
+    data=[]
+    dat_for_filter = time.strftime("%Y%m%d")
+    data.append( " ".join([item['cleaned_text'] for item in client.tweeter_db.news_tweets.find({'$and':[{'cleaned_text':{'$regex':'lockdown','$options':'i'}},
                                                                     {'tmstamp':{'$regex':'^'+dat_for_filter+'.*'}}]},{'cleaned_text':1,'_id':0})]))
-    data.append( ". ".join([item['cleaned_text'] for item in main_col.find({'$and':[{'cleaned_text':{'$regex':'lockdown','$options':'i'}},
+    data.append( ". ".join([item['cleaned_text'] for item in client.tweeter_db.news_tweets.find({'$and':[{'cleaned_text':{'$regex':'lockdown','$options':'i'}},
                                                                     {'tmstamp':{'$regex':'^'+dat_for_filter+'.*'}}]},{'cleaned_text':1,'_id':0})]))
+    client = None
     summary_text = ""
     if len(data) >0:
         for text in data:
@@ -115,5 +117,5 @@ def create_summery():
     print(f"lenght of the text: {len(summary_text)} complete summary : {summary_text}")
     PIL_example.generate_image(summary_text)
 
-if __name__ == "__main__":
-    create_summery()
+if __name__=="__main__":
+    main()

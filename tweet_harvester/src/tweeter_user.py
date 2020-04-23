@@ -13,13 +13,19 @@ import datetime
 wd = os.getcwd()
 
 #print(wd)
+import urllib
+username = urllib.parse.quote_plus('rahul')
+password = urllib.parse.quote_plus('qwert@12')
+client = MongoClient(f"mongodb+srv://{username}:{password}@covid0-oir2o.mongodb.net/test?retryWrites=true&w=majority")
 
-client = MongoClient()
+print(f"connected to client")
+#print(f"total dbs {client.list_database_names()}")
+#client = MongoClient()
 #db.profiles.create_index([('twt_id', pymongo.ASCENDING)],unique=True)
 db = client.tweeter_db
 collection = db.news_tweets
 updates_coll = db.updates
-updates_coll.remove({});
+updates_coll.delete_many({});
 
 auth_vars = []
 f = open("auth", "r")
@@ -36,7 +42,7 @@ consumer_secret = auth_vars[1]
 access_key = auth_vars[2]
 access_secret = auth_vars[3]
 
-#print(consumer_key)
+print(consumer_key, consumer_secret, access_key, access_secret)
 
 def convert_datetime_timezone(dt, tz1, tz2):
     tz1 = pytz.timezone(tz1)
@@ -175,7 +181,13 @@ def get_all_tweets(profile_name,last_tweet):
     #df = pd.DataFrame(tweetslist, columns = cols)
     #df.to_csv(screen_name+'tweets.csv')
 
-def main_entry(all_channels=['timesofindia','ndtv','TimesNow','aajtak','ABPNews','EconomicTimes','htTweets','PTI_News','ANI']):
+#import sleep
+if __name__ == '__main__':
+    #pass in the username of the account you want to download
+    #ts = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime('Tue Mar 31 21:30:00 +0000 2020','%a %b %d %H:%M:%S +0000 %Y'))
+
+    all_channels=['timesofindia','ndtv','TimesNow','aajtak','ABPNews','EconomicTimes','htTweets','PTI_News','ANI']
+
     for channel in all_channels:
         try:
             #dttm = collection.find_one({'user.screen_name':'timesofindia'},{'created_at':1,'_id':0})['created_at']
@@ -188,10 +200,4 @@ def main_entry(all_channels=['timesofindia','ndtv','TimesNow','aajtak','ABPNews'
         print(channel, last_tweet)
         #time.sleep(10)
         get_all_tweets(channel, last_tweet)
-#import sleep
-if __name__ == '__main__':
-    #pass in the username of the account you want to download
-    #ts = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime('Tue Mar 31 21:30:00 +0000 2020','%a %b %d %H:%M:%S +0000 %Y'))
-    main_entry()
-else:
-    pass
+client = None
